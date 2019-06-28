@@ -1,0 +1,66 @@
+def userInput = input(id: 'userInput', message: 'some message', parameters: [
+    [$class: 'ChoiceParameterDefinition', choices: string, description: 'description', name:'input'],
+    ])
+    VARAIBLE = userInput
+	
+	
+	
+def userInput = input(id: 'userInput', message: 'some message', parameters: [
+    [$class: 'ChoiceParameterDefinition', choices: string, description: 'description1', name:'input1'],
+    [$class: 'ChoiceParameterDefinition', choices: string, description: 'description2', name:'input2'],
+    ])
+    VARAIBLE1 = userInput['input1']
+    VARAIBLE2 = userInput['input2']
+	
+	
+stage 'promotion'
+def userInput = input(id: 'userInput', message: 'Let\'s promote?', parameters: [
+ [$class: 'TextParameterDefinition', defaultValue: 'uat', description: 'Environment', name: 'env'],
+ [$class: 'TextParameterDefinition', defaultValue: 'uat1', description: 'Target', name: 'target']
+])
+echo ("Env: "+userInput['env'])
+echo ("Target: "+userInput['target'])
+
+ stage ('Promotion'){
+	steps{
+ emailext mimeType: 'text/html',
+                 subject: "[Jenkins]${currentBuild.fullDisplayName}",
+                 to: "tom@xxx.com",
+                 body: '''<a href="${BUILD_URL}input">click to approve</a>'''
+
+        def userInput = input id: 'userInput',
+                              message: 'Let\'s promote?', 
+                              submitterParameter: 'submitter',
+                              submitter: 'tom',
+                              parameters: [
+                                [$class: 'TextParameterDefinition', defaultValue: 'sit', description: 'Environment', name: 'env'],
+                                [$class: 'TextParameterDefinition', defaultValue: 'k8s', description: 'Target', name: 'target']]}
+
+        echo ("Env: "+userInput['env'])
+        echo ("Target: "+userInput['target'])
+        echo ("submitted by: "+userInput['submitter'])
+ }
+ 
+ 
+ def feedback = input(submitterParameter: 'submitter', ...)
+echo "It was ${feedback.submitter} who submitted the dialog."
+
+
+def magicValue
+node {
+    withCredentials([[$class: 'StringBinding', credentialsId: 'production_magic', variable: 'tmpMagicValue']]) {
+        magicValue = env.tmpMagicValue
+    }
+}
+
+// send some email notification
+
+while (true) {
+  def pass = input id: 'ApproveIt', message: 'Please enter the magic value to approve the build', parameters: [[$class: 'com.michelin.cio.hudson.plugins.passwordparam.PasswordParameterDefinition', defaultValue: 'bogus', description: 'The magic token to show you have rights to push to production', name: 'authentication token']]
+  if (magicValue != pass) {
+    echo "incorrect value entered"
+  }
+  else {
+    echo "Push to production approved by magic"
+    break;
+  }
